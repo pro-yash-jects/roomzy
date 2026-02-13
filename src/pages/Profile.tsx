@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import Layout from "@/components/Layout";
@@ -9,9 +10,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Trash2 } from "lucide-react";
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [fullName, setFullName] = useState("");
   const [bio, setBio] = useState("");
@@ -87,6 +94,43 @@ const Profile = () => {
             <Button onClick={handleSave} disabled={saving} className="w-full">
               {saving ? "Saving..." : "Save Changes"}
             </Button>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full">
+                  <Trash2 className="mr-2 h-4 w-4" /> Delete Account
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete your account and all associated data.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={async () => {
+                      const { data: { session } } = await supabase.auth.getSession();
+                      const res = await supabase.functions.invoke("delete-account", {
+                        headers: { Authorization: `Bearer ${session?.access_token}` },
+                      });
+                      if (res.error) {
+                        toast({ title: "Error", description: "Failed to delete account", variant: "destructive" });
+                      } else {
+                        await signOut();
+                        navigate("/");
+                        toast({ title: "Account deleted", description: "Your account has been permanently removed." });
+                      }
+                    }}
+                  >
+                    Delete Account
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </CardContent>
         </Card>
       </div>

@@ -173,7 +173,13 @@ const ListingDetails = () => {
                   disabled={[{ before: new Date() }, ...bookedDates.map((d) => d)]}
                   numberOfMonths={1}
                   className="rounded-lg border"
+                  modifiers={{ booked: bookedDates }}
+                  modifiersClassNames={{ booked: "line-through text-destructive opacity-50" }}
                 />
+                <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm bg-primary/20 border border-primary" /> Available</span>
+                  <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm bg-destructive/20 border border-destructive line-through" /> Booked</span>
+                </div>
               </div>
               {nights > 0 && (
                 <div className="space-y-1 rounded-lg bg-muted p-3 text-sm">

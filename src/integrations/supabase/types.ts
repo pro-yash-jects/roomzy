@@ -16,6 +16,8 @@ export type Database = {
     Tables: {
       bookings: {
         Row: {
+          cancellation_reason: string | null
+          cancelled_by: string | null
           check_in: string
           check_out: string
           created_at: string
@@ -26,6 +28,8 @@ export type Database = {
           total_price: number
         }
         Insert: {
+          cancellation_reason?: string | null
+          cancelled_by?: string | null
           check_in: string
           check_out: string
           created_at?: string
@@ -36,6 +40,8 @@ export type Database = {
           total_price: number
         }
         Update: {
+          cancellation_reason?: string | null
+          cancelled_by?: string | null
           check_in?: string
           check_out?: string
           created_at?: string

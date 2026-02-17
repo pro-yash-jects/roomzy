@@ -50,7 +50,7 @@ const ImageGallery = ({ images, alt = "Image" }: ImageGalleryProps) => {
 
   if (images.length === 0) {
     return (
-      <div className="aspect-[16/10] rounded-xl bg-muted flex items-center justify-center text-muted-foreground">
+      <div className="h-full min-h-[300px] rounded-xl bg-muted flex items-center justify-center text-muted-foreground">
         No images
       </div>
     );
@@ -60,7 +60,7 @@ const ImageGallery = ({ images, alt = "Image" }: ImageGalleryProps) => {
     <>
       {/* Main slideshow */}
       <div
-        className="relative aspect-[16/10] overflow-hidden rounded-xl bg-muted cursor-pointer group"
+        className="relative h-full overflow-hidden rounded-xl bg-muted cursor-pointer group"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={() => setLightboxOpen(true)}

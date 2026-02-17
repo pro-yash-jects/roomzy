@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { MapPin, User, CalendarDays, DoorOpen } from "lucide-react";
+import ImageGallery from "@/components/ImageGallery";
 import { differenceInDays, format, eachDayOfInterval } from "date-fns";
 import type { DateRange } from "react-day-picker";
 
@@ -39,7 +40,7 @@ const ListingDetails = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedRoomId, setSelectedRoomId] = useState<string>("");
-  const [activeImage, setActiveImage] = useState(0);
+  const [activeImage, setActiveImage] = useState(0); // kept for compat
 
   useEffect(() => {
     if (!id) return;
@@ -180,23 +181,8 @@ const ListingDetails = () => {
         <p className="mt-1 flex items-center gap-1 text-muted-foreground"><MapPin className="h-4 w-4" /> {listing.location}</p>
 
         {/* Image gallery */}
-        <div className="mt-6 grid gap-2 md:grid-cols-[2fr_1fr]">
-          <div className="aspect-[16/10] overflow-hidden rounded-xl bg-muted">
-            {images[activeImage] ? (
-              <img src={images[activeImage]} alt={listing.title} className="h-full w-full object-cover" />
-            ) : (
-              <div className="flex h-full items-center justify-center text-muted-foreground">No images</div>
-            )}
-          </div>
-          {images.length > 1 && (
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-1">
-              {images.slice(0, 3).map((img, i) => (
-                <button key={i} onClick={() => setActiveImage(i)} className={`aspect-[4/3] overflow-hidden rounded-lg border-2 ${activeImage === i ? "border-primary" : "border-transparent"}`}>
-                  <img src={img} alt="" className="h-full w-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
+        <div className="mt-6">
+          <ImageGallery images={images} alt={listing.title} />
         </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">

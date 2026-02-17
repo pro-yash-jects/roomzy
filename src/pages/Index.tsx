@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ListingCard from "@/components/ListingCard";
 import Layout from "@/components/Layout";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface ListingWithImage {
   id: string;
@@ -21,6 +22,18 @@ const Index = () => {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [showRoomzy, setShowRoomzy] = useState(true);
+
+  useEffect(() => {
+    const cycle = () => {
+      setShowRoomzy(true);
+      const timer = setTimeout(() => setShowRoomzy(false), 1000);
+      return timer;
+    };
+    const t = cycle();
+    const interval = setInterval(cycle, 10000);
+    return () => { clearTimeout(t); clearInterval(interval); };
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -69,8 +82,32 @@ const Index = () => {
       {/* Hero */}
       <section className="bg-gradient-to-br from-primary/10 via-background to-accent/10 py-16 md:py-24">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="font-display text-4xl font-bold md:text-5xl lg:text-6xl">
-            Find Your Perfect <span className="text-primary">Stay</span>
+          <h1 className="font-display text-4xl font-bold md:text-5xl lg:text-6xl h-[1.2em] relative overflow-hidden">
+            <AnimatePresence mode="wait">
+              {showRoomzy ? (
+                <motion.span
+                  key="roomzy"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.4 }}
+                  className="block text-primary"
+                >
+                  Roomzy
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="tagline"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.4 }}
+                  className="block"
+                >
+                  Find Your Perfect <span className="text-primary">Stay</span>
+                </motion.span>
+              )}
+            </AnimatePresence>
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-lg text-muted-foreground">
             Discover unique homes and experiences around the world

@@ -10,7 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, X, Plus, Trash2 } from "lucide-react";
+import { Upload, X } from "lucide-react";
+import RoomNumbersInput from "@/components/RoomNumbersInput";
 
 const AMENITIES = ["WiFi", "Kitchen", "Parking", "Pool", "Air Conditioning", "Heating", "Washer", "Dryer", "TV", "Gym", "Hot Tub", "Pets Allowed"];
 
@@ -118,33 +119,7 @@ const CreateListing = () => {
                   ))}
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Room Numbers</Label>
-                <p className="text-xs text-muted-foreground">Add each room number your property has (e.g. 101, 102, 201)</p>
-                <div className="space-y-2">
-                  {roomNumbers.map((rn, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <Input
-                        value={rn}
-                        onChange={(e) => {
-                          const updated = [...roomNumbers];
-                          updated[i] = e.target.value;
-                          setRoomNumbers(updated);
-                        }}
-                        placeholder={`Room ${i + 1}`}
-                      />
-                      {roomNumbers.length > 1 && (
-                        <Button type="button" variant="ghost" size="icon" onClick={() => setRoomNumbers((prev) => prev.filter((_, j) => j !== i))}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <Button type="button" variant="outline" size="sm" onClick={() => setRoomNumbers((prev) => [...prev, ""])}>
-                    <Plus className="h-4 w-4 mr-1" /> Add Room
-                  </Button>
-                </div>
-              </div>
+              <RoomNumbersInput roomNumbers={roomNumbers} setRoomNumbers={setRoomNumbers} />
               <div className="space-y-2">
                 <Label>Images</Label>
                 <div className="flex flex-wrap gap-3">

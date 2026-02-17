@@ -31,7 +31,7 @@ const Index = () => {
       return timer;
     };
     const t = cycle();
-    const interval = setInterval(cycle, 6000);
+    const interval = setInterval(cycle, 10000);
     return () => { clearTimeout(t); clearInterval(interval); };
   }, []);
 
@@ -91,7 +91,8 @@ const Index = () => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 60 }}
                   transition={{ duration: 0.5, ease: "easeInOut" }}
-                  className="block text-primary"
+                  className="block bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent tracking-tight"
+                  style={{ fontSize: "1.15em", letterSpacing: "-0.02em" }}
                 >
                   Roomzy
                 </motion.span>

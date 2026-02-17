@@ -25,6 +25,7 @@ const ChatWindow = ({ conversationId, otherUser }: ChatWindowProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -60,7 +61,11 @@ const ChatWindow = ({ conversationId, otherUser }: ChatWindowProps) => {
   }, [conversationId]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Scroll only within the chat scroll area, not the whole page
+    const viewport = scrollAreaRef.current?.querySelector("[data-radix-scroll-area-viewport]");
+    if (viewport) {
+      viewport.scrollTop = viewport.scrollHeight;
+    }
   }, [messages]);
 
   const handleSend = async () => {
@@ -81,7 +86,7 @@ const ChatWindow = ({ conversationId, otherUser }: ChatWindowProps) => {
 
   return (
     <div className="flex flex-col h-full">
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
         <div className="space-y-3">
           {messages.length === 0 && (
             <p className="text-center text-sm text-muted-foreground py-8">No messages yet. Start the conversation!</p>

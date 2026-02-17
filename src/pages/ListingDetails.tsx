@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, User, CalendarDays, DoorOpen } from "lucide-react";
+import { MapPin, User, CalendarDays, DoorOpen, MessageSquare } from "lucide-react";
 import ImageGallery from "@/components/ImageGallery";
 import { differenceInDays, format, eachDayOfInterval } from "date-fns";
 import type { DateRange } from "react-day-picker";
@@ -258,6 +258,39 @@ const ListingDetails = () => {
                 <p className="text-sm text-muted-foreground">Hosted by</p>
                 <p className="font-medium">{host.full_name || "Host"}</p>
               </div>
+              {user && user.id !== listing.host_id && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="ml-auto"
+                  onClick={async () => {
+                    // Find or create conversation
+                    const { data: existing } = await supabase
+                      .from("conversations")
+                      .select("id")
+                      .eq("listing_id", id!)
+                      .eq("guest_id", user.id)
+                      .maybeSingle();
+
+                    if (existing) {
+                      navigate(`/messages?conversation=${existing.id}`);
+                    } else {
+                      const { data: created, error } = await supabase
+                        .from("conversations")
+                        .insert({ listing_id: id!, guest_id: user.id, host_id: listing.host_id })
+                        .select("id")
+                        .single();
+                      if (error) {
+                        toast({ title: "Error", description: error.message, variant: "destructive" });
+                      } else {
+                        navigate(`/messages?conversation=${created.id}`);
+                      }
+                    }
+                  }}
+                >
+                  <MessageSquare className="mr-2 h-4 w-4" /> Chat with Host
+                </Button>
+              )}
             </div>
           )}
           <div>

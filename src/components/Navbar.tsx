@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Home, Menu, X, LogOut, User, LayoutDashboard, CalendarDays } from "lucide-react";
+import { Home, Menu, X, LogOut, User, LayoutDashboard, CalendarDays, MessageSquare } from "lucide-react";
 import { useState } from "react";
 
 const Navbar = () => {
@@ -44,6 +44,11 @@ const Navbar = () => {
               <Button variant="ghost" asChild>
                 <Link to="/bookings">
                   <CalendarDays className="mr-1 h-4 w-4" /> Bookings
+                </Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link to="/messages">
+                  <MessageSquare className="mr-1 h-4 w-4" /> Messages
                 </Link>
               </Button>
               <DropdownMenu>
@@ -93,6 +98,9 @@ const Navbar = () => {
                 )}
                 <Button variant="ghost" className="justify-start" asChild onClick={() => setMobileOpen(false)}>
                   <Link to="/bookings"><CalendarDays className="mr-2 h-4 w-4" /> Bookings</Link>
+                </Button>
+                <Button variant="ghost" className="justify-start" asChild onClick={() => setMobileOpen(false)}>
+                  <Link to="/messages"><MessageSquare className="mr-2 h-4 w-4" /> Messages</Link>
                 </Button>
                 <Button variant="ghost" className="justify-start" asChild onClick={() => setMobileOpen(false)}>
                   <Link to="/profile"><User className="mr-2 h-4 w-4" /> Profile</Link>

@@ -60,7 +60,7 @@ const ImageGallery = ({ images, alt = "Image" }: ImageGalleryProps) => {
     <>
       {/* Main slideshow */}
       <div
-        className="relative aspect-[16/10] overflow-hidden rounded-xl bg-muted cursor-pointer group"
+        className="relative aspect-[16/7] max-w-2xl overflow-hidden rounded-xl bg-muted cursor-pointer group"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={() => setLightboxOpen(true)}

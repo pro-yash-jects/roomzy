@@ -14,6 +14,7 @@ import Bookings from "./pages/Bookings";
 import HostDashboard from "./pages/HostDashboard";
 import CreateListing from "./pages/CreateListing";
 import EditListing from "./pages/EditListing";
+import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/listing/:id" element={<ListingDetails />} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
+            <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/host/dashboard" element={<ProtectedRoute requiredRole="host"><HostDashboard /></ProtectedRoute>} />
             <Route path="/host/create" element={<ProtectedRoute requiredRole="host"><CreateListing /></ProtectedRoute>} />
             <Route path="/host/edit/:id" element={<ProtectedRoute requiredRole="host"><EditListing /></ProtectedRoute>} />

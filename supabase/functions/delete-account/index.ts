@@ -65,6 +65,9 @@ Deno.serve(async (req) => {
       .eq("guest_id", user.id)
       .eq("status", "confirmed");
 
+    // Delete conversations (messages cascade automatically)
+    await adminClient.from("conversations").delete().or(`guest_id.eq.${user.id},host_id.eq.${user.id}`);
+
     // Delete profile and role
     await adminClient.from("user_roles").delete().eq("user_id", user.id);
     await adminClient.from("profiles").delete().eq("id", user.id);

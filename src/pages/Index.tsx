@@ -92,6 +92,7 @@ const Index = () => {
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="font-display text-2xl font-semibold">Featured Stays</h2>
           <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground whitespace-nowrap">${priceRange[0]}</span>
             <Slider
               min={0}
               max={1000}
@@ -100,9 +101,7 @@ const Index = () => {
               onValueChange={setPriceRange}
               className="w-48"
             />
-            <span className="flex h-9 min-w-fit items-center justify-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow">
-              ${priceRange[0]}–${priceRange[1]}/night
-            </span>
+            <span className="text-sm text-muted-foreground whitespace-nowrap">${priceRange[1]}/night</span>
           </div>
         </div>
 

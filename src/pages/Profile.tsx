@@ -14,7 +14,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Trash2, Mail, Loader2 } from "lucide-react";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+
 
 const Profile = () => {
   const { user, signOut } = useAuth();
@@ -86,7 +86,7 @@ const Profile = () => {
   };
 
   const handleConfirmDelete = async () => {
-    if (!user?.email || otpValue.length < 8) return;
+    if (!user?.email || otpValue.length < 6) return;
     setDeleting(true);
     // Verify the reauthentication nonce via updateUser
     const { error: verifyError } = await supabase.auth.updateUser({
@@ -184,23 +184,19 @@ const Profile = () => {
                 <DialogHeader>
                   <DialogTitle>Enter Verification Code</DialogTitle>
                   <DialogDescription>
-                    We sent an 8-digit code to <span className="font-medium text-foreground">{user?.email}</span>.
+                    We sent a 6-digit code to <span className="font-medium text-foreground">{user?.email}</span>.
                     Enter it below to permanently delete your account.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="flex justify-center py-4">
-                  <InputOTP maxLength={8} value={otpValue} onChange={setOtpValue}>
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
-                      <InputOTPSlot index={6} />
-                      <InputOTPSlot index={7} />
-                    </InputOTPGroup>
-                  </InputOTP>
+                  <Input
+                    value={otpValue}
+                    onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="Enter 6-digit code"
+                    className="text-center text-lg tracking-widest max-w-[200px]"
+                    maxLength={6}
+                    inputMode="numeric"
+                  />
                 </div>
                 <DialogFooter className="gap-2 sm:gap-0">
                   <Button variant="outline" onClick={() => { setOtpDialogOpen(false); setOtpValue(""); }} disabled={deleting}>
@@ -208,7 +204,7 @@ const Profile = () => {
                   </Button>
                   <Button
                     variant="destructive"
-                    disabled={otpValue.length < 8 || deleting}
+                    disabled={otpValue.length < 6 || deleting}
                     onClick={handleConfirmDelete}
                   >
                     {deleting ? (

@@ -14,7 +14,11 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2 } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Trash2, Mail, Loader2 } from "lucide-react";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 const Profile = () => {
   const { user, signOut } = useAuth();
@@ -25,6 +29,12 @@ const Profile = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  // Deletion flow state
+  const [otpDialogOpen, setOtpDialogOpen] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -61,6 +71,52 @@ const Profile = () => {
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else toast({ title: "Profile updated!" });
     setSaving(false);
+  };
+
+  const handleSendOtp = async () => {
+    if (!user?.email) return;
+    setSendingOtp(true);
+    const { error } = await supabase.auth.signInWithOtp({
+      email: user.email,
+      options: { shouldCreateUser: false },
+    });
+    setSendingOtp(false);
+    if (error) {
+      toast({ title: "Failed to send code", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Verification code sent", description: `Check your email at ${user.email}` });
+    setOtpDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!user?.email || otpValue.length < 6) return;
+    setDeleting(true);
+    // Verify the OTP first
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email: user.email,
+      token: otpValue,
+      type: "email",
+    });
+    if (verifyError) {
+      setDeleting(false);
+      toast({ title: "Invalid code", description: "The verification code is incorrect or expired.", variant: "destructive" });
+      return;
+    }
+    // OTP verified, now delete the account
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await supabase.functions.invoke("delete-account", {
+      headers: { Authorization: `Bearer ${session?.access_token}` },
+    });
+    setDeleting(false);
+    setOtpDialogOpen(false);
+    if (res.error) {
+      toast({ title: "Error", description: "Failed to delete account. Please try again.", variant: "destructive" });
+    } else {
+      await signOut();
+      navigate("/");
+      toast({ title: "Account deleted", description: "Your account has been permanently removed." });
+    }
   };
 
   const initials = fullName ? fullName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "U";
@@ -105,32 +161,71 @@ const Profile = () => {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete your account and all associated data.
+                    This action cannot be undone. We will send a verification code to your email
+                    <span className="font-medium text-foreground"> {user?.email}</span> to confirm
+                    deletion. All your data including listings, bookings, and messages will be permanently removed.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    onClick={async () => {
-                      const { data: { session } } = await supabase.auth.getSession();
-                      const res = await supabase.functions.invoke("delete-account", {
-                        headers: { Authorization: `Bearer ${session?.access_token}` },
-                      });
-                      if (res.error) {
-                        toast({ title: "Error", description: "Failed to delete account", variant: "destructive" });
-                      } else {
-                        await signOut();
-                        navigate("/");
-                        toast({ title: "Account deleted", description: "Your account has been permanently removed." });
-                      }
+                    disabled={sendingOtp}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleSendOtp();
                     }}
                   >
-                    Delete Account
+                    {sendingOtp ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending code...</>
+                    ) : (
+                      <><Mail className="mr-2 h-4 w-4" /> Send Verification Code</>
+                    )}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+
+            {/* OTP Verification Dialog */}
+            <Dialog open={otpDialogOpen} onOpenChange={(open) => { if (!deleting) setOtpDialogOpen(open); setOtpValue(""); }}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Enter Verification Code</DialogTitle>
+                  <DialogDescription>
+                    We sent a 6-digit code to <span className="font-medium text-foreground">{user?.email}</span>.
+                    Enter it below to permanently delete your account.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex justify-center py-4">
+                  <InputOTP maxLength={6} value={otpValue} onChange={setOtpValue}>
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+                <DialogFooter className="gap-2 sm:gap-0">
+                  <Button variant="outline" onClick={() => { setOtpDialogOpen(false); setOtpValue(""); }} disabled={deleting}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    disabled={otpValue.length < 6 || deleting}
+                    onClick={handleConfirmDelete}
+                  >
+                    {deleting ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Deleting...</>
+                    ) : (
+                      "Confirm & Delete"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardContent>
         </Card>
       </div>

@@ -73,8 +73,11 @@ const Profile = () => {
   const handleSendOtp = async () => {
     if (!user?.email) return;
     setSendingOtp(true);
-    // Use reauthenticate() which sends a visible 6-digit code in the email
-    const { error } = await supabase.auth.reauthenticate();
+    // Use signInWithOtp which sends a standard 6-digit code
+    const { error } = await supabase.auth.signInWithOtp({
+      email: user.email,
+      options: { shouldCreateUser: false },
+    });
     setSendingOtp(false);
     if (error) {
       toast({ title: "Failed to send code", description: error.message, variant: "destructive" });
@@ -88,17 +91,18 @@ const Profile = () => {
   const handleConfirmDelete = async () => {
     if (!user?.email || otpValue.length < 6) return;
     setDeleting(true);
-    // Verify the reauthentication nonce via updateUser
-    const { error: verifyError } = await supabase.auth.updateUser({
-      data: { _deletion_verified: true },
-      nonce: otpValue,
+    // Verify the 6-digit OTP code
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email: user.email,
+      token: otpValue,
+      type: "email",
     });
     if (verifyError) {
       setDeleting(false);
       toast({ title: "Invalid code", description: "The verification code is incorrect or expired.", variant: "destructive" });
       return;
     }
-    // Nonce verified, now delete the account
+    // OTP verified, now delete the account
     const { data: { session } } = await supabase.auth.getSession();
     const res = await supabase.functions.invoke("delete-account", {
       headers: { Authorization: `Bearer ${session?.access_token}` },

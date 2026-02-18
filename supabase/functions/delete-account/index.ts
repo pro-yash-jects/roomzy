@@ -5,6 +5,39 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+async function sendOtpEmail(email: string, code: string) {
+  const resendKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendKey) throw new Error("RESEND_API_KEY is not configured");
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${resendKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "Roomzy <onboarding@resend.dev>",
+      to: [email],
+      subject: "Your Account Deletion Code",
+      html: `
+        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
+          <h2 style="color: #1a1a1a; margin-bottom: 16px;">Account Deletion Verification</h2>
+          <p style="color: #555; font-size: 15px;">You requested to delete your account. Use the code below to confirm:</p>
+          <div style="background: #f4f4f5; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
+            <span style="font-size: 32px; font-weight: 700; letter-spacing: 0.3em; color: #1a1a1a; font-family: monospace;">${code}</span>
+          </div>
+          <p style="color: #555; font-size: 14px;">This code expires in 10 minutes. If you didn't request this, you can safely ignore this email.</p>
+        </div>
+      `,
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Failed to send email [${res.status}]: ${body}`);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -38,13 +71,13 @@ Deno.serve(async (req) => {
     const action = body.action || "delete";
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // ACTION: generate-code — generate a 6-digit code and return it
+    // ACTION: generate-code — generate a 6-digit code and email it
     if (action === "generate-code") {
       const code = String(Math.floor(100000 + Math.random() * 900000));
-      
+
       // Clear old codes for this user
       await adminClient.from("deletion_codes").delete().eq("user_id", user.id);
-      
+
       // Store new code (expires in 10 minutes)
       await adminClient.from("deletion_codes").insert({
         user_id: user.id,
@@ -52,7 +85,10 @@ Deno.serve(async (req) => {
         expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
       });
 
-      return new Response(JSON.stringify({ success: true, code }), {
+      // Send the code via email
+      await sendOtpEmail(user.email!, code);
+
+      return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

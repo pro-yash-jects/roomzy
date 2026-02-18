@@ -80,22 +80,17 @@ const Profile = () => {
       body: { action: "generate-code" },
     });
     setSendingOtp(false);
-    if (res.error || !res.data?.code) {
-      toast({ title: "Failed to generate code", description: res.error?.message || "Please try again.", variant: "destructive" });
+    if (res.error) {
+      toast({ title: "Failed to send code", description: res.error?.message || "Please try again.", variant: "destructive" });
       return;
     }
-    setGeneratedCode(res.data.code);
-    toast({ title: "Verification code generated", description: "Enter the 6-digit code shown below to confirm deletion." });
+    toast({ title: "Verification code sent", description: `Check your email at ${user.email}` });
     setConfirmDialogOpen(false);
     setOtpDialogOpen(true);
   };
 
   const handleConfirmDelete = async () => {
     if (!user?.email || otpValue.length < 6) return;
-    if (otpValue !== generatedCode) {
-      toast({ title: "Invalid code", description: "The code you entered does not match.", variant: "destructive" });
-      return;
-    }
     setDeleting(true);
     const { data: { session } } = await supabase.auth.getSession();
     const res = await supabase.functions.invoke("delete-account", {
@@ -183,14 +178,11 @@ const Profile = () => {
                 <DialogHeader>
                   <DialogTitle>Enter Verification Code</DialogTitle>
                   <DialogDescription>
-                    Your 6-digit verification code is:
+                    We sent a 6-digit code to <span className="font-medium text-foreground">{user?.email}</span>.
+                    Enter it below to permanently delete your account.
                   </DialogDescription>
                 </DialogHeader>
-                <div className="flex flex-col items-center gap-4 py-4">
-                  <div className="text-2xl font-bold tracking-[0.5em] text-foreground bg-muted px-6 py-3 rounded-lg font-mono">
-                    {generatedCode}
-                  </div>
-                  <p className="text-sm text-muted-foreground">Enter this code below to permanently delete your account.</p>
+                <div className="flex justify-center py-4">
                   <Input
                     value={otpValue}
                     onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, "").slice(0, 6))}

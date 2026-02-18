@@ -20,13 +20,13 @@ async function sendOtpEmail(email: string, code: string) {
       to: [email],
       subject: "Your Account Deletion Code",
       html: `
-        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
-          <h2 style="color: #1a1a1a; margin-bottom: 16px;">Account Deletion Verification</h2>
-          <p style="color: #555; font-size: 15px;">You requested to delete your account. Use the code below to confirm:</p>
-          <div style="background: #f4f4f5; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
-            <span style="font-size: 32px; font-weight: 700; letter-spacing: 0.3em; color: #1a1a1a; font-family: monospace;">${code}</span>
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 32px;">
+          <h2 style="color: #1a1a1a; margin: 0 0 16px 0; font-size: 22px; font-weight: 700;">Account Deletion Verification</h2>
+          <p style="color: #333; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0;">You requested to delete your account. Use the code below to confirm:</p>
+          <div style="background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 8px; padding: 32px; text-align: center; margin: 0 0 24px 0;">
+            <span style="font-size: 36px; font-weight: 700; letter-spacing: 0.5em; color: #1a1a1a; font-family: monospace;">${code.split('').join(' ')}</span>
           </div>
-          <p style="color: #555; font-size: 14px;">This code expires in 10 minutes. If you didn't request this, you can safely ignore this email.</p>
+          <p style="color: #555; font-size: 14px; line-height: 1.6; margin: 0;">This code expires in 10 minutes. If you didn't request this, you can safely ignore this email.</p>
         </div>
       `,
     }),

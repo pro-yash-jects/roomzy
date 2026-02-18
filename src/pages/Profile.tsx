@@ -30,6 +30,7 @@ const Profile = () => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [otpDialogOpen, setOtpDialogOpen] = useState(false);
   const [otpValue, setOtpValue] = useState("");
+  const [generatedCode, setGeneratedCode] = useState("");
   const [sendingOtp, setSendingOtp] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -73,39 +74,33 @@ const Profile = () => {
   const handleSendOtp = async () => {
     if (!user?.email) return;
     setSendingOtp(true);
-    // Use signInWithOtp which sends a standard 6-digit code
-    const { error } = await supabase.auth.signInWithOtp({
-      email: user.email,
-      options: { shouldCreateUser: false },
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await supabase.functions.invoke("delete-account", {
+      headers: { Authorization: `Bearer ${session?.access_token}` },
+      body: { action: "generate-code" },
     });
     setSendingOtp(false);
-    if (error) {
-      toast({ title: "Failed to send code", description: error.message, variant: "destructive" });
+    if (res.error || !res.data?.code) {
+      toast({ title: "Failed to generate code", description: res.error?.message || "Please try again.", variant: "destructive" });
       return;
     }
-    toast({ title: "Verification code sent", description: `Check your email at ${user.email}` });
+    setGeneratedCode(res.data.code);
+    toast({ title: "Verification code generated", description: "Enter the 6-digit code shown below to confirm deletion." });
     setConfirmDialogOpen(false);
     setOtpDialogOpen(true);
   };
 
   const handleConfirmDelete = async () => {
     if (!user?.email || otpValue.length < 6) return;
-    setDeleting(true);
-    // Verify the 6-digit OTP code
-    const { error: verifyError } = await supabase.auth.verifyOtp({
-      email: user.email,
-      token: otpValue,
-      type: "email",
-    });
-    if (verifyError) {
-      setDeleting(false);
-      toast({ title: "Invalid code", description: "The verification code is incorrect or expired.", variant: "destructive" });
+    if (otpValue !== generatedCode) {
+      toast({ title: "Invalid code", description: "The code you entered does not match.", variant: "destructive" });
       return;
     }
-    // OTP verified, now delete the account
+    setDeleting(true);
     const { data: { session } } = await supabase.auth.getSession();
     const res = await supabase.functions.invoke("delete-account", {
       headers: { Authorization: `Bearer ${session?.access_token}` },
+      body: { action: "delete", code: otpValue },
     });
     setDeleting(false);
     setOtpDialogOpen(false);
@@ -183,16 +178,19 @@ const Profile = () => {
             </Dialog>
 
             {/* OTP Verification Dialog */}
-            <Dialog open={otpDialogOpen} onOpenChange={(open) => { if (!deleting) setOtpDialogOpen(open); setOtpValue(""); }}>
+            <Dialog open={otpDialogOpen} onOpenChange={(open) => { if (!deleting) { setOtpDialogOpen(open); setOtpValue(""); setGeneratedCode(""); } }}>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle>Enter Verification Code</DialogTitle>
                   <DialogDescription>
-                    We sent a 6-digit code to <span className="font-medium text-foreground">{user?.email}</span>.
-                    Enter it below to permanently delete your account.
+                    Your 6-digit verification code is:
                   </DialogDescription>
                 </DialogHeader>
-                <div className="flex justify-center py-4">
+                <div className="flex flex-col items-center gap-4 py-4">
+                  <div className="text-2xl font-bold tracking-[0.5em] text-foreground bg-muted px-6 py-3 rounded-lg font-mono">
+                    {generatedCode}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Enter this code below to permanently delete your account.</p>
                   <Input
                     value={otpValue}
                     onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -203,7 +201,7 @@ const Profile = () => {
                   />
                 </div>
                 <DialogFooter className="gap-2 sm:gap-0">
-                  <Button variant="outline" onClick={() => { setOtpDialogOpen(false); setOtpValue(""); }} disabled={deleting}>
+                  <Button variant="outline" onClick={() => { setOtpDialogOpen(false); setOtpValue(""); setGeneratedCode(""); }} disabled={deleting}>
                     Cancel
                   </Button>
                   <Button

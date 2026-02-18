@@ -86,7 +86,7 @@ const Profile = () => {
   };
 
   const handleConfirmDelete = async () => {
-    if (!user?.email || otpValue.length < 6) return;
+    if (!user?.email || otpValue.length < 8) return;
     setDeleting(true);
     // Verify the reauthentication nonce via updateUser
     const { error: verifyError } = await supabase.auth.updateUser({
@@ -184,12 +184,12 @@ const Profile = () => {
                 <DialogHeader>
                   <DialogTitle>Enter Verification Code</DialogTitle>
                   <DialogDescription>
-                    We sent a 6-digit code to <span className="font-medium text-foreground">{user?.email}</span>.
+                    We sent an 8-digit code to <span className="font-medium text-foreground">{user?.email}</span>.
                     Enter it below to permanently delete your account.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="flex justify-center py-4">
-                  <InputOTP maxLength={6} value={otpValue} onChange={setOtpValue}>
+                  <InputOTP maxLength={8} value={otpValue} onChange={setOtpValue}>
                     <InputOTPGroup>
                       <InputOTPSlot index={0} />
                       <InputOTPSlot index={1} />
@@ -197,6 +197,8 @@ const Profile = () => {
                       <InputOTPSlot index={3} />
                       <InputOTPSlot index={4} />
                       <InputOTPSlot index={5} />
+                      <InputOTPSlot index={6} />
+                      <InputOTPSlot index={7} />
                     </InputOTPGroup>
                   </InputOTP>
                 </div>
@@ -206,7 +208,7 @@ const Profile = () => {
                   </Button>
                   <Button
                     variant="destructive"
-                    disabled={otpValue.length < 6 || deleting}
+                    disabled={otpValue.length < 8 || deleting}
                     onClick={handleConfirmDelete}
                   >
                     {deleting ? (

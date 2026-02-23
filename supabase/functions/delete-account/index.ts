@@ -5,39 +5,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-async function sendOtpEmail(email: string, code: string) {
-  const resendKey = Deno.env.get("RESEND_API_KEY");
-  if (!resendKey) throw new Error("RESEND_API_KEY is not configured");
-
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${resendKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "Roomzy <onboarding@resend.dev>",
-      to: [email],
-      subject: "Your Account Deletion Code",
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 32px;">
-          <h2 style="color: #1a1a1a; margin: 0 0 16px 0; font-size: 22px; font-weight: 700;">Account Deletion Verification</h2>
-          <p style="color: #333; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0;">You requested to delete your account. Use the 8-digit code below to confirm:</p>
-          <div style="background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 8px; padding: 32px; text-align: center; margin: 0 0 24px 0;">
-            <span style="font-size: 36px; font-weight: 700; letter-spacing: 0.5em; color: #1a1a1a; font-family: monospace;">${code.split('').join(' ')}</span>
-          </div>
-          <p style="color: #555; font-size: 14px; line-height: 1.6; margin: 0;">This code expires in 10 minutes. If you didn't request this, you can safely ignore this email.</p>
-        </div>
-      `,
-    }),
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Failed to send email [${res.status}]: ${body}`);
-  }
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -73,7 +40,7 @@ Deno.serve(async (req) => {
     const action = body.action || "delete";
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // ACTION: generate-code — generate a 6-digit code and email it
+    // ACTION: generate-code — generate an 8-digit code and return it directly
     if (action === "generate-code") {
       const code = String(Math.floor(10000000 + Math.random() * 90000000));
 
@@ -87,10 +54,7 @@ Deno.serve(async (req) => {
         expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
       });
 
-      // Send the code via email
-      await sendOtpEmail(user.email!, code);
-
-      return new Response(JSON.stringify({ success: true }), {
+      return new Response(JSON.stringify({ success: true, code }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { Trash2, Mail, Loader2 } from "lucide-react";
+import { Trash2, Loader2 } from "lucide-react";
 
 
 const Profile = () => {
@@ -80,11 +80,11 @@ const Profile = () => {
       body: { action: "generate-code" },
     });
     setSendingOtp(false);
-    if (res.error) {
-      toast({ title: "Failed to send code", description: res.error?.message || "Please try again.", variant: "destructive" });
+    if (res.error || !res.data?.code) {
+      toast({ title: "Failed to generate code", description: "Please try again.", variant: "destructive" });
       return;
     }
-    toast({ title: "Verification code sent", description: `Check your email at ${user.email}` });
+    setGeneratedCode(res.data.code);
     setConfirmDialogOpen(false);
     setOtpDialogOpen(true);
   };
@@ -150,8 +150,7 @@ const Profile = () => {
                 <DialogHeader>
                   <DialogTitle>Are you absolutely sure?</DialogTitle>
                   <DialogDescription>
-                    This action cannot be undone. We will send a verification code to your email
-                    <span className="font-medium text-foreground"> {user?.email}</span> to confirm
+                    This action cannot be undone. We will generate a verification code for you to confirm
                     deletion. All your data including listings, bookings, and messages will be permanently removed.
                   </DialogDescription>
                 </DialogHeader>
@@ -162,10 +161,10 @@ const Profile = () => {
                     disabled={sendingOtp}
                     onClick={handleSendOtp}
                   >
-                    {sendingOtp ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending code...</>
+                     {sendingOtp ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating code...</>
                     ) : (
-                      <><Mail className="mr-2 h-4 w-4" /> Send Verification Code</>
+                      "Generate Verification Code"
                     )}
                   </Button>
                 </DialogFooter>
@@ -178,10 +177,12 @@ const Profile = () => {
                 <DialogHeader>
                   <DialogTitle>Enter Verification Code</DialogTitle>
                   <DialogDescription>
-                    We sent an 8-digit code to <span className="font-medium text-foreground">{user?.email}</span>.
-                    Enter it below to permanently delete your account.
+                    Your verification code is shown below. Enter it in the field to confirm account deletion.
                   </DialogDescription>
                 </DialogHeader>
+                <div className="flex justify-center py-2">
+                  <code className="bg-muted px-4 py-2 rounded-md text-lg font-mono tracking-widest">{generatedCode}</code>
+                </div>
                 <div className="flex justify-center py-4">
                   <Input
                     value={otpValue}

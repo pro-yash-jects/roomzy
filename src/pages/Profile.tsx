@@ -90,7 +90,7 @@ const Profile = () => {
   };
 
   const handleConfirmDelete = async () => {
-    if (!user?.email || otpValue.length < 6) return;
+    if (!user?.email || otpValue.length < 8) return;
     setDeleting(true);
     const { data: { session } } = await supabase.auth.getSession();
     const res = await supabase.functions.invoke("delete-account", {
@@ -178,17 +178,17 @@ const Profile = () => {
                 <DialogHeader>
                   <DialogTitle>Enter Verification Code</DialogTitle>
                   <DialogDescription>
-                    We sent a 6-digit code to <span className="font-medium text-foreground">{user?.email}</span>.
+                    We sent an 8-digit code to <span className="font-medium text-foreground">{user?.email}</span>.
                     Enter it below to permanently delete your account.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="flex justify-center py-4">
                   <Input
                     value={otpValue}
-                    onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    placeholder="Enter 6-digit code"
-                    className="text-center text-lg tracking-widest max-w-[200px]"
-                    maxLength={6}
+                    onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                    placeholder="Enter 8-digit code"
+                    className="text-center text-lg tracking-widest max-w-[240px]"
+                    maxLength={8}
                     inputMode="numeric"
                   />
                 </div>
@@ -198,7 +198,7 @@ const Profile = () => {
                   </Button>
                   <Button
                     variant="destructive"
-                    disabled={otpValue.length < 6 || deleting}
+                    disabled={otpValue.length < 8 || deleting}
                     onClick={handleConfirmDelete}
                   >
                     {deleting ? (

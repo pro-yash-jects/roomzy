@@ -22,7 +22,7 @@ async function sendOtpEmail(email: string, code: string) {
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 32px;">
           <h2 style="color: #1a1a1a; margin: 0 0 16px 0; font-size: 22px; font-weight: 700;">Account Deletion Verification</h2>
-          <p style="color: #333; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0;">You requested to delete your account. Use the code below to confirm:</p>
+          <p style="color: #333; font-size: 15px; line-height: 1.6; margin: 0 0 24px 0;">You requested to delete your account. Use the 8-digit code below to confirm:</p>
           <div style="background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 8px; padding: 32px; text-align: center; margin: 0 0 24px 0;">
             <span style="font-size: 36px; font-weight: 700; letter-spacing: 0.5em; color: #1a1a1a; font-family: monospace;">${code.split('').join(' ')}</span>
           </div>
@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
 
     // ACTION: generate-code — generate a 6-digit code and email it
     if (action === "generate-code") {
-      const code = String(Math.floor(100000 + Math.random() * 900000));
+      const code = String(Math.floor(10000000 + Math.random() * 90000000));
 
       // Clear old codes for this user
       await adminClient.from("deletion_codes").delete().eq("user_id", user.id);
@@ -95,8 +95,8 @@ Deno.serve(async (req) => {
 
     // ACTION: delete — verify code and delete the account
     const { code } = body;
-    if (!code || code.length !== 6) {
-      return new Response(JSON.stringify({ error: "A valid 6-digit code is required" }), {
+    if (!code || code.length !== 8) {
+      return new Response(JSON.stringify({ error: "A valid 8-digit code is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
